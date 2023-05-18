@@ -22,5 +22,6 @@ jobs:
       # sam build 
       - run: sam build
       # Run Unit tests- Specify unit tests here 
+      
       # sam deploy
       - run: sam deploy --capabilities CAPABILITY_NAMED_IAM --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --region ap-south-1
