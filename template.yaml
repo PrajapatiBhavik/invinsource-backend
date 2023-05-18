@@ -1,0 +1,297 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ApiGatewayStageName:
+    Type: String
+    Description: Stage name for the API Gateway
+
+Resources:
+  IsrRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: IsrRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: IsrPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+
+  IsrPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: IsrPolicy
+      Roles:
+        - Ref: IsrRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              -  dynamodb:*
+              - dax:*
+              - application-autoscaling:DeleteScalingPolicy
+              - application-autoscaling:DeregisterScalableTarget
+              - application-autoscaling:DescribeScalableTargets
+              - application-autoscaling:DescribeScalingActivities
+              - application-autoscaling:DescribeScalingPolicies
+              - application-autoscaling:PutScalingPolicy
+              - application-autoscaling:RegisterScalableTarget
+              - cloudwatch:DeleteAlarms
+              - cloudwatch:DescribeAlarmHistory
+              - cloudwatch:DescribeAlarms
+              - cloudwatch:DescribeAlarmsForMetric
+              - cloudwatch:GetMetricStatistics
+              - cloudwatch:ListMetrics
+              - cloudwatch:PutMetricAlarm
+              - cloudwatch:GetMetricData
+              - datapipeline:ActivatePipeline
+              - datapipeline:CreatePipeline
+              - datapipeline:DeletePipeline
+              - datapipeline:DescribeObjects
+              - datapipeline:DescribePipelines
+              - datapipeline:GetPipelineDefinition
+              - datapipeline:ListPipelines
+              - datapipeline:PutPipelineDefinition
+              - datapipeline:QueryObjects
+              - ec2:DescribeVpcs
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - iam:GetRole
+              - iam:ListRoles
+              - kms:DescribeKey
+              - kms:ListAliases
+              - sns:CreateTopic
+              - sns:DeleteTopic
+              - sns:ListSubscriptions
+              - sns:ListSubscriptionsByTopic
+              - sns:ListTopics
+              - sns:Subscribe
+              - sns:Unsubscribe
+              - sns:SetTopicAttributes
+              - lambda:CreateFunction
+              - lambda:ListFunctions
+              - lambda:ListEventSourceMappings
+              - lambda:CreateEventSourceMapping
+              - lambda:DeleteEventSourceMapping
+              - lambda:GetFunctionConfiguration
+              - lambda:DeleteFunction
+              - resource-groups:ListGroups
+              - resource-groups:ListGroupResources
+              - resource-groups:GetGroup
+              - resource-groups:GetGroupQuery
+              - resource-groups:DeleteGroup
+              - resource-groups:CreateGroup
+              - tag:GetResources
+              - kinesis:ListStreams
+              - kinesis:DescribeStream
+              - kinesis:DescribeStreamSummary
+              - s3:*
+              - s3-object-lambda:*
+              - cognito-identity:*
+              - cognito-idp:*
+              - cognito-sync:*
+              - iam:ListRoles
+              - iam:ListOpenIdConnectProviders
+              - iam:GetRole
+              - iam:ListSAMLProviders
+              - iam:GetSAMLProvider
+              - kinesis:ListStreams
+              - lambda:GetPolicy
+              - lambda:ListFunctions
+              - sns:GetSMSSandboxAccountStatus
+              - sns:ListPlatformApplications
+              - ses:ListIdentities
+              - ses:GetIdentityVerificationAttributes
+              - mobiletargeting:GetApps
+              - acm:ListCertificates
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - lambda:InvokeFunction
+              - lambda:InvokeAsync
+            Resource: '*'
+
+  Invinsource:
+    Type: 'AWS::Serverless::Api'
+    Properties:
+      StageName: !Ref ApiGatewayStageName
+      DefinitionBody:
+        swagger: '2.0'
+        info:
+          title: 'Invinsource'
+        paths:
+          /mock:
+            get:
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              responses:
+                '200':
+                  description: 'Success'
+                  schema:
+                    type: object
+              x-amazon-apigateway-integration:
+                type: AWS
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${mockFunction.Arn}/invocations'
+                passthroughBehavior: when_no_match
+                contentHandling: CONVERT_TO_TEXT
+                responses:
+                  default:
+                    statusCode: '200'
+                requestTemplates:
+                  application/json: |
+                    {
+                      "method": "$context.httpMethod",
+                      "body" : $input.json('$'),
+                      "headers": {
+                        #foreach($param in $input.params().header.keySet())
+                        "$param": "$util.escapeJavaScript($input.params().header.get($param))"
+                        #if($foreach.hasNext),#end
+                        #end
+                      }
+                    }
+          /Register:
+            post:
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              responses:
+                '200':
+                  description: 'Success'
+                  schema:
+                    type: object
+              x-amazon-apigateway-integration:
+                type: AWS
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Register.Arn}/invocations'
+                passthroughBehavior: when_no_match
+                contentHandling: CONVERT_TO_TEXT
+                responses:
+                  default:
+                    statusCode: '200'
+                requestTemplates:
+                  application/json: |
+                    {
+                      "method": "$context.httpMethod",
+                      "body" : $input.json('$'),
+                      "headers": {
+                        #foreach($param in $input.params().header.keySet())
+                        "$param": "$util.escapeJavaScript($input.params().header.get($param))"
+                        #if($foreach.hasNext),#end
+                        #end
+                      }
+                    }
+          /Login:
+            post:
+              consumes:
+                - application/json
+              produces:
+                - application/json
+              responses:
+                '200':
+                  description: 'Success'
+                  schema:
+                    type: object
+              x-amazon-apigateway-integration:
+                type: AWS
+                httpMethod: POST
+                uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${Login.Arn}/invocations'
+                passthroughBehavior: when_no_match
+                contentHandling: CONVERT_TO_TEXT
+                responses:
+                  default:
+                    statusCode: '200'
+                requestTemplates:
+                  application/json: |
+                    {
+                      "method": "$context.httpMethod",
+                      "body" : $input.json('$'),
+                      "headers": {
+                        #foreach($param in $input.params().header.keySet())
+                        "$param": "$util.escapeJavaScript($input.params().header.get($param))"
+                        #if($foreach.hasNext),#end
+                        #end
+                      }
+                    }
+  mockFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: Register/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Role: !GetAtt IsrRole.Arn
+      Events:
+        Invinsource:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Invinsource
+            Path: /Register
+            Method: get
+  Register:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: Register/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          CLIENT_ID: 6k8sfit59u97q4glcbsppcbeil
+          CLIENT_SECRET: q9tuog0oectles3ot1u11jdimj4cc8ultsj508n8pi4mqcln2d5
+          REGION: ap-south-1
+          USER_POOL_ID: ap-south-1_UQWQN01Qj
+          
+      Role: !GetAtt IsrRole.Arn
+      Events:
+        Invinsource:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Invinsource
+            Path: /Register
+            Method: post
+  Login:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      CodeUri: Login/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          CLIENT_ID: 6k8sfit59u97q4glcbsppcbeil
+          CLIENT_SECRET: q9tuog0oectles3ot1u11jdimj4cc8ultsj508n8pi4mqcln2d5
+          REGION: ap-south-1
+          USER_POOL_ID: ap-south-1_UQWQN01Qj
+          
+      Role: !GetAtt IsrRole.Arn
+      Events:
+        Invinsource:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: Invinsource
+            Path: /Login
+            Method: post
+
+Outputs:
+  ApiGatewayInvokeURL:
+    Value: !Sub 'https://${Invinsource}.execute-api.${AWS::Region}.amazonaws.com/${ApiGatewayStageName}'
