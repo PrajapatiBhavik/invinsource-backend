@@ -23,24 +23,21 @@ AWS Compromise Assessment compiles the events and Indicator of Compromise (IoC) 
 
 
 ## :high_brightness: Project Structure
-├── src/ <br>
-│   ├── main/ <br>
-│   │   ├── java/ <br>
-│   │   │   ├── com/ <br>
-│   │   │   │   ├── example/ <br>
-│   │   │   │   │   ├── controllers/ <br>
-│   │   │   │   │   ├── models/ <br>
-│   │   │   │   │   └── utils/ <br>
-│   │   ├── resources/ <br>
-│   │   │   ├── config/ <br>
-│   │   │   ├── static/ <br>
-│   │   │   └── templates/ <br>
+├── / <br>
+│   ├── /api<br>
+│   │   ├── /AdminToUser<br>
+│   │   ├── /AdminUserGlobalSignout<br>
+        ├── /AllUserProfile<br>
+        ├── /auth<br>
+          ├── /auth<br>
 │   └── test/ <br>
 │       └── java/ <br>
 │           └── com/ <br>
 │               └── example/ <br>
 │ 
 
+
+ 
 
 ## :white_check_mark: How to run the script
 
