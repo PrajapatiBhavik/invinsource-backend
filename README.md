@@ -23,7 +23,7 @@ AWS Compromise Assessment compiles the events and Indicator of Compromise (IoC) 
 
 
 ## :high_brightness: Project Structure
-├── src/
+├── src/ <br>
 │   ├── main/
 │   │   ├── java/
 │   │   │   ├── com/
